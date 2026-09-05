@@ -45,7 +45,7 @@ ROM_SIZE    = 2048
 
 
 STACK_TOP = 0xDF 
-STACK_MIN = 0xD0
+STACK_MIN = 0x80
 MMIO_BASE = 0xE0
 
 
@@ -188,19 +188,20 @@ class WOPR_8:
         opcode = decoded["opcode"]
 
         if opcode == OP_PUSH:
-            pass
+            return False
         
         elif opcode == OP_POP:
-            pass
+            return False
 
         elif opcode == OP_CALL:
-            pass
+            return True
 
         elif opcode == OP_RET:
-            pass
+            return True
 
         elif opcode == OP_ADD:
             self.execute_add(decoded)
+            return False
 
 
     def execute_shift(self, decoded):
@@ -239,7 +240,19 @@ class WOPR_8:
 
 
     def step(self):
-        pass
+        if self.halted:
+            return
+
+        instruction = self.fetch()
+        decoded = self.decode(instruction)
+
+        if decoded is None:
+            return
+
+        pc_handled = self.execute(decoded)
+
+        if not pc_handled:
+            self.pc = (self.pc + 1) & PC_MASK
 
 
 def main():
