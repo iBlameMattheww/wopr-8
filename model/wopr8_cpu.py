@@ -40,8 +40,8 @@ REG_MASK = 0xFF
 PC_MASK  = 0x7FF
 
 
-RAM_SIZE = 256
-ROM_SIZE = 2048
+RAM_SIZE    = 256
+ROM_SIZE    = 2048
 
 
 STACK_TOP = 0xDF 
@@ -67,6 +67,7 @@ R_OPS = {
     OP_PUSH,
 }
 
+
 I_OPS = {
     OP_XORI,
     OP_ORI,
@@ -75,6 +76,7 @@ I_OPS = {
     OP_LDI,
     OP_ADDI,
 }
+
 
 J_OPS = {
     OP_JNZ,
@@ -117,10 +119,10 @@ class WOPR_8:
     def decode(self, instruction):
         opcode = instruction >> 11 
     
-         if opcode in R_OPS:
+        if opcode in R_OPS:
             return self.decode_type_r(opcode, instruction) 
 
-        elif opcode in J_OPS
+        elif opcode in J_OPS:
             return self.decode_type_j(opcode, instruction)
 
         elif opcode in I_OPS:
@@ -183,7 +185,57 @@ class WOPR_8:
         }
 
     def execute(self, decoded):
-        pass
+        opcode = decoded["opcode"]
+
+        if opcode == OP_PUSH:
+            pass
+        
+        elif opcode == OP_POP:
+            pass
+
+        elif opcode == OP_CALL:
+            pass
+
+        elif opcode == OP_RET:
+            pass
+
+        elif opcode == OP_ADD:
+            self.execute_add(decoded)
+
+
+    def execute_shift(self, decoded):
+        rd = decoded["rd"]
+        rs = decoded["rs"]
+        shamt = decoded["shamt"]
+        dir = decoded["dir"]
+
+
+    def apply_shift(self, value, shamt, direction):
+        if direction: # right
+            self.set_flag(PSR_C, (value >> (shamt - 1)) & 1) # get last shifted out bit
+            return (value >> shamt) & REG_MASK
+
+        else: # left
+            self.set_flag(PSR_C, (value >> (8 - shamt)) & 1) # get last shifted out bit
+            return (value << shamt) & REG_MASK 
+
+
+    def execute_add(self, decoded):
+        rd = decoded["rd"]
+        rs = decoded["rs"]
+        shamt = decoded["shamt"]
+        dir = decoded["dir"]
+
+        full_sum = self.regs[rd] + self.regs[rs]
+        result = full_sum & REG_MASK # keep lower 8 bytes
+
+        self.set_flag(PSR_C, full_sum > 0xFF)
+
+        if shamt:
+            result = self.apply_shift(result, shamt, dir)
+
+        self.set_flag(PSR_Z, result == 0)
+        self.regs[rd] = result
 
 
     def step(self):
@@ -197,7 +249,24 @@ def main():
 
     print(hex(cpu.fetch()))
 
-    print(0b110010011000000 >> 10)
+    cpu.regs[1] = 200
+    cpu.regs[2] = 100
+
+    decoded = {
+        "opcode": OP_ADD,
+        "rd": 1,
+        "rs": 2,
+        "shamt": None,
+        "dir": None,
+        "immediate": None,
+        "address": None
+    }
+
+    cpu.execute(decoded)
+
+    print("R1 = ", cpu.regs[1])
+    print("Z = ", cpu.get_flag(PSR_Z))
+    print("C = ", cpu.get_flag(PSR_C))
 
 
 if __name__ == "__main__":
