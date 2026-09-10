@@ -203,6 +203,13 @@ class WOPR_8:
             self.execute_add(decoded)
             return False
 
+        elif opcode == OP_ADDI:
+            return False
+
+        elif opcode == OP_SUB:
+            self.execute_sub(decoded)
+            return False
+
 
     def execute_shift(self, decoded):
         rd = decoded["rd"]
@@ -219,6 +226,24 @@ class WOPR_8:
         else: # left
             self.set_flag(PSR_C, (value >> (8 - shamt)) & 1) # get last shifted out bit
             return (value << shamt) & REG_MASK 
+
+
+    def execute_sub(self, decoded):
+        rd = decoded["rd"]
+        rs = decoded["rs"]
+        shamt = decoded["shamt"]
+        dir = decoded["dir"]
+
+        full_sub = self.regs[rd] - self.regs[rs]
+        result = full_sub & REG_MASK
+
+        self.set_flag(PSR_C, full_sub < 0x00)
+
+        if shamt:
+            result = self.apply_shift(result, shamt, dir)
+
+        self.set_flag(PSR_Z, result == 0)
+        self.regs[rd] = result
 
 
     def execute_add(self, decoded):
@@ -256,31 +281,7 @@ class WOPR_8:
 
 
 def main():
-    cpu = WOPR_8()
-
-    cpu.rom[0] = 0xA123
-
-    print(hex(cpu.fetch()))
-
-    cpu.regs[1] = 200
-    cpu.regs[2] = 100
-
-    decoded = {
-        "opcode": OP_ADD,
-        "rd": 1,
-        "rs": 2,
-        "shamt": None,
-        "dir": None,
-        "immediate": None,
-        "address": None
-    }
-
-    cpu.execute(decoded)
-
-    print("R1 = ", cpu.regs[1])
-    print("Z = ", cpu.get_flag(PSR_Z))
-    print("C = ", cpu.get_flag(PSR_C))
-
+    pass
 
 if __name__ == "__main__":
     main()

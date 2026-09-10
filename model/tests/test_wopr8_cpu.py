@@ -93,3 +93,49 @@ def test_add_post_shift():
     assert cpu.pc == 3
     assert cpu.get_flag(PSR_Z) == 0
     assert cpu.get_flag(PSR_C) == 1
+
+
+def test_sub_step():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 5
+    cpu.regs[2] = 4
+
+    cpu.rom[0] = encode_instruction_r(OP_SUB, rd = 1, rs = 2)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 1
+    assert cpu.pc == 1
+    assert cpu.get_flag(PSR_Z) == 0
+    assert cpu.get_flag(PSR_C) == 0
+
+
+def test_sub_rasies_zero():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 5
+    cpu.regs[2] = 5
+
+    cpu.rom[0] = encode_instruction_r(OP_SUB, rd = 1, rs = 2)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 0
+    assert cpu.get_flag(PSR_Z) == 1
+    assert cpu.get_flag(PSR_C) == 0
+
+
+def test_sub_raises_carry():
+    cpu = WOPR_8()
+    
+    cpu.regs[1] = 4
+    cpu.regs[2] = 5
+
+    cpu.rom[0] = encode_instruction_r(OP_SUB, rd = 1, rs = 2)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 255 # 11111111 -> -1 in two's complement
+    assert cpu.get_flag(PSR_Z) == 0
+    assert cpu.get_flag(PSR_C) == 1
