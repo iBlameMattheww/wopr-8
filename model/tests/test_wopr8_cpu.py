@@ -139,3 +139,62 @@ def test_sub_raises_carry():
     assert cpu.regs[1] == 255 # 11111111 -> -1 in two's complement
     assert cpu.get_flag(PSR_Z) == 0
     assert cpu.get_flag(PSR_C) == 1
+
+
+def test_load_step():
+    cpu = WOPR_8()
+
+    cpu.ram[0] = 42
+
+    cpu.regs[1] = 0
+
+    cpu.rom[0] = encode_instruction_r(OP_LOAD, rd = 1, rs = 0)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 42
+    assert cpu.pc == 1
+
+
+def test_load_post_shift():
+    cpu = WOPR_8()
+
+    cpu.ram[0] = 42
+
+    cpu.regs[1] = 0
+    cpu.regs[2] = 1
+
+    cpu.rom[0] = encode_instruction_r(OP_LOAD, rd = 1, rs = 2, shamt = 1, dir = 1)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 42
+    assert cpu.pc == 1
+
+
+def test_store_step():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 42
+    cpu.regs[2] = 0
+
+    cpu.rom[0] = encode_instruction_r(OP_STORE, rd = 2, rs = 1)
+
+    cpu.step()
+
+    assert cpu.ram[0] == 42
+    assert cpu.pc == 1
+
+
+def test_store_post_shift():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 42
+    cpu.regs[2] = 1
+
+    cpu.rom[0] = encode_instruction_r(OP_STORE, rd = 2, rs = 1, shamt = 1, dir = 1)
+
+    cpu.step()
+
+    assert cpu.ram[0] == 42
+    assert cpu.pc == 1
