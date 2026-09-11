@@ -224,6 +224,14 @@ class WOPR_8:
         elif opcode == OP_STI:
             return False
 
+        elif opcode == OP_MOVE:
+            self.execute_move(decoded)
+            return False
+
+        elif opcode == OP_AND:
+            self.execute_and(decoded)
+            return False
+
 
     def execute_shift(self, decoded):
         rd = decoded["rd"]
@@ -240,6 +248,34 @@ class WOPR_8:
         else: # left
             self.set_flag(PSR_C, (value >> (8 - shamt)) & 1) # get last shifted out bit
             return (value << shamt) & REG_MASK 
+
+
+    def execute_and(self, decoded):
+        rd = decoded["rd"]
+        rs = decoded["rs"]
+        shamt = decoded["shamt"]
+        dir = decoded["dir"]
+
+        result = self.regs[rd] & self.regs[rs]
+        if shamt:
+            result = self.apply_shift(result, shamt, dir)
+
+        if result == 0:
+            self.set_flag(PSR_Z, True)
+
+        self.regs[rd] = result
+
+
+    def execute_move(self, decoded):
+        rd = decoded["rd"]
+        rs = decoded["rs"]
+        shamt = decoded["shamt"]
+        dir = decoded["dir"]
+
+        if shamt:
+            self.regs[rd] = self.apply_shift(self.regs[rs], shamt, dir)
+        else:
+            self.regs[rd] = self.regs[rs]
 
 
     def execute_store(self, decoded):

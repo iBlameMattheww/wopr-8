@@ -198,3 +198,86 @@ def test_store_post_shift():
 
     assert cpu.ram[0] == 42
     assert cpu.pc == 1
+
+
+def test_move_step():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 0
+    cpu.regs[2] = 3
+
+    cpu.rom[0] = encode_instruction_r(OP_MOVE, rd = 1, rs = 2)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 3
+    assert cpu.pc == 1
+
+
+def test_move_post_shift():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 0
+    cpu.regs[2] = 1
+
+    cpu.rom[0] = encode_instruction_r(OP_MOVE, rd = 1, rs = 2, shamt = 7, dir = 0)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 128
+    assert cpu.pc == 1
+
+
+def test_and_step():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 255
+    cpu.regs[2] = 128
+
+    cpu.rom[0] = encode_instruction_r(OP_AND, rd = 1, rs = 2)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 128
+    assert cpu.pc == 1
+
+
+def test_and_raises_zero():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 255
+    cpu.regs[2] = 0
+
+    cpu.rom[0] = encode_instruction_r(OP_AND, rd = 1, rs = 2)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 0
+    assert cpu.pc == 1
+    assert cpu.get_flag(PSR_Z) == 1
+
+
+def test_and_post_shift():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 1
+    cpu.regs[2] = 1
+
+    cpu.rom[0] = encode_instruction_r(OP_AND, rd = 1, rs = 2, shamt = 2, dir = 0)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 4
+    assert cpu.pc == 1
+    assert cpu.get_flag(PSR_Z) == 0
+
+    cpu.rom[1] = encode_instruction_r(OP_AND, rd = 1, rs = 2, shamt = 7, dir = 0)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 0
+    assert cpu.pc == 2
+    assert cpu.get_flag(PSR_Z) == 1
+
+
+    00000001
