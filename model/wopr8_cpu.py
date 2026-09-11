@@ -232,12 +232,51 @@ class WOPR_8:
             self.execute_and(decoded)
             return False
 
+        elif opcode == OP_ANDI:
+            return False
 
-    def execute_shift(self, decoded):
-        rd = decoded["rd"]
-        rs = decoded["rs"]
-        shamt = decoded["shamt"]
-        dir = decoded["dir"]
+        elif opcode == OP_OR:
+            self.execute_or(decoded)
+            return False
+
+        elif opcode == OP_ORI:
+            return False
+
+        elif opcode == OP_XOR:
+            self.execute_xor(decoded)
+            return False
+
+        elif opcode == OP_XORI:
+            return False
+
+        elif opcode == OP_NOT:
+            self.execute_not(decoded)
+            return False
+
+        elif opcode == OP_SHIFT:
+            self.execute_shift(decoded)
+            return False
+
+        elif opcode == OP_JMP:
+            return True
+
+        elif opcode == OP_JZ:
+            return True
+
+        elif opcode == OP_JNZ:
+            return True
+
+        elif opcode == OP_CMP:
+            self.execute_cmp(decoded)
+            return False
+
+        elif opcode == OP_NOP:
+            self.execute_nop(decoded)
+            return False
+
+        elif opcode == OP_HALT:
+            self.execute_halt(decoded)
+            return False
 
 
     def apply_shift(self, value, shamt, direction):
@@ -248,6 +287,94 @@ class WOPR_8:
         else: # left
             self.set_flag(PSR_C, (value >> (8 - shamt)) & 1) # get last shifted out bit
             return (value << shamt) & REG_MASK 
+
+
+    def execute_halt(self, decoded):
+        self.halted = True
+        self.set_flag(PSR_HALTED, True)
+
+
+    def execute_nop(self, decoded):
+        pass
+
+
+    def execute_cmp(self, decoded):
+        rd = decoded["rd"]
+        rs = decoded["rs"]
+
+        result = self.regs[rd] - self.regs[rs]
+
+        self.set_flag(PSR_Z, (result & REG_MASK) == 0)
+
+
+    def execute_shift(self, decoded):
+        rd = decoded["rd"]
+        rs = decoded["rs"]
+        shamt = decoded["shamt"]
+        dir = decoded["dir"]
+
+        if dir:
+            result = (self.regs[rd] >> self.regs[rs]) & REG_MASK
+            self.set_flag(PSR_C, (self.regs[rd] >> (self.regs[rs] - 1)) & 1)
+        else:
+            result = (self.regs[rd] << self.regs[rs]) & REG_MASK
+            self.set_flag(PSR_C, (self.regs[rd] >> (8 - self.regs[rs])) & 1)
+
+        if shamt:
+            result = self.apply_shift(result, shamt, dir)
+
+        if result == 0:
+            self.set_flag(PSR_Z, True)
+
+        self.regs[rd] = result
+
+
+    def execute_not(self, decoded):
+        rd = decoded["rd"]
+        rs = decoded["rs"]
+        shamt = decoded["shamt"]
+        dir = decoded["dir"]
+
+        result = ~self.regs[rs] & REG_MASK
+        if shamt:
+            result = self.apply_shift(result, shamt, dir)
+
+        if result == 0:
+            self.set_flag(PSR_Z, True)
+
+        self.regs[rd] = result
+
+
+    def execute_xor(self, decoded):
+        rd = decoded["rd"]
+        rs = decoded["rs"]
+        shamt = decoded["shamt"]
+        dir = decoded["dir"]
+
+        result = self.regs[rd] ^ self.regs[rs]
+        if shamt:
+            result = self.apply_shift(result, shamt, dir)
+
+        if result == 0:
+            self.set_flag(PSR_Z, True)
+
+        self.regs[rd] = result
+
+
+    def execute_or(self, decoded):
+        rd = decoded["rd"]
+        rs = decoded["rs"]
+        shamt = decoded["shamt"]
+        dir = decoded["dir"]
+
+        result = self.regs[rd] | self.regs[rs]
+        if shamt:
+            result = self.apply_shift(result, shamt, dir)
+
+        if result == 0:
+            self.set_flag(PSR_Z, True)
+
+        self.regs[rd] = result
 
 
     def execute_and(self, decoded):

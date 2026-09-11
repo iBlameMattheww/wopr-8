@@ -271,6 +271,8 @@ def test_and_post_shift():
     assert cpu.pc == 1
     assert cpu.get_flag(PSR_Z) == 0
 
+    cpu.regs[2] = 4
+
     cpu.rom[1] = encode_instruction_r(OP_AND, rd = 1, rs = 2, shamt = 7, dir = 0)
 
     cpu.step()
@@ -278,3 +280,278 @@ def test_and_post_shift():
     assert cpu.regs[1] == 0
     assert cpu.pc == 2
     assert cpu.get_flag(PSR_Z) == 1
+
+
+def test_or_step():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 1
+    cpu.regs[2] = 2
+
+    cpu.rom[0] = encode_instruction_r(OP_OR, rd = 1, rs = 2)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 3
+    assert cpu.pc == 1
+
+
+def test_or_raises_zero():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 0
+    cpu.regs[2] = 0
+
+    cpu.rom[0] = encode_instruction_r(OP_OR, rd = 1, rs = 2)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 0
+    assert cpu.pc == 1
+    assert cpu.get_flag(PSR_Z) == 1
+
+
+def test_or_post_shift():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 1
+    cpu.regs[2] = 2
+
+    cpu.rom[0] = encode_instruction_r(OP_OR, rd = 1, rs = 2, shamt = 2, dir = 0)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 12
+    assert cpu.pc == 1
+    assert cpu.get_flag(PSR_Z) == 0
+
+    cpu.regs[2] = 4
+
+    cpu.rom[1] = encode_instruction_r(OP_OR, rd = 1, rs = 2, shamt = 7, dir = 0)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 0
+    assert cpu.pc == 2
+    assert cpu.get_flag(PSR_Z) == 1
+
+
+def test_xor_step():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 1
+    cpu.regs[2] = 3
+
+    cpu.rom[0] = encode_instruction_r(OP_XOR, rd = 1, rs = 2)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 2
+    assert cpu.pc == 1
+
+
+def test_xor_raises_zero():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 1
+    cpu.regs[2] = 1
+
+    cpu.rom[0] = encode_instruction_r(OP_XOR, rd = 1, rs = 2)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 0
+    assert cpu.pc == 1
+    assert cpu.get_flag(PSR_Z) == 1
+
+
+def test_xor_post_shift():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 1
+    cpu.regs[2] = 3
+
+    cpu.rom[0] = encode_instruction_r(OP_XOR, rd = 1, rs = 2, shamt = 2, dir = 0)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 8
+    assert cpu.pc == 1
+    assert cpu.get_flag(PSR_Z) == 0
+
+    cpu.regs[2] = 8
+
+    cpu.rom[1] = encode_instruction_r(OP_XOR, rd = 1, rs = 2, shamt = 7, dir = 0)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 0
+    assert cpu.pc == 2
+    assert cpu.get_flag(PSR_Z) == 1
+
+
+def test_not_step():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 0
+
+    cpu.rom[0] = encode_instruction_r(OP_NOT, rd = 1, rs = 0)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 255
+    assert cpu.pc == 1
+
+
+def test_not_raises_zero():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 255
+
+    cpu.rom[0] = encode_instruction_r(OP_NOT, rd = 0, rs = 1)
+
+    cpu.step()
+
+    assert cpu.regs[0] == 0
+    assert cpu.pc == 1
+    assert cpu.get_flag(PSR_Z) == 1
+
+
+def test_not_post_shift():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 0
+
+    cpu.rom[0] = encode_instruction_r(OP_NOT, rd = 1, rs = 0, shamt = 2, dir = 0)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 252
+    assert cpu.pc == 1
+    assert cpu.get_flag(PSR_Z) == 0
+
+    cpu.rom[1] = encode_instruction_r(OP_NOT, rd = 1, rs = 0, shamt = 7, dir = 0)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 128
+    assert cpu.pc == 2
+    assert cpu.get_flag(PSR_Z) == 0
+
+
+def test_shift_step():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 1
+    cpu.regs[2] = 2
+
+    cpu.rom[0] = encode_instruction_r(OP_SHIFT, rd = 1, rs = 2, shamt = 0, dir = 0)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 4
+    assert cpu.pc == 1
+    assert cpu.get_flag(PSR_Z) == 0
+    assert cpu.get_flag(PSR_C) == 0
+
+
+def test_shift_raises_zero():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 0
+    cpu.regs[2] = 8
+
+    cpu.rom[0] = encode_instruction_r(OP_SHIFT, rd = 1, rs = 2, shamt = 0, dir = 0)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 0
+    assert cpu.pc == 1
+    assert cpu.get_flag(PSR_Z) == 1
+    assert cpu.get_flag(PSR_C) == 0
+
+
+def test_shift_raises_carry():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 1
+    cpu.regs[2] = 8
+
+    cpu.rom[0] = encode_instruction_r(OP_SHIFT, rd = 1, rs = 2, shamt = 0, dir = 0)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 0
+    assert cpu.pc == 1
+    assert cpu.get_flag(PSR_Z) == 1
+    assert cpu.get_flag(PSR_C) == 1
+
+
+def test_shift_post_shift():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 1
+    cpu.regs[2] = 2
+
+    cpu.rom[0] = encode_instruction_r(OP_SHIFT, rd = 1, rs = 2, shamt = 2, dir = 0)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 16
+    assert cpu.pc == 1
+    assert cpu.get_flag(PSR_Z) == 0
+    assert cpu.get_flag(PSR_C) == 0
+
+    cpu.rom[1] = encode_instruction_r(OP_SHIFT, rd = 1, rs = 2, shamt = 7, dir = 0)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 0
+    assert cpu.pc == 2
+    assert cpu.get_flag(PSR_Z) == 1
+    assert cpu.get_flag(PSR_C) == 0
+
+
+def test_cmp_step():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 5
+    cpu.regs[2] = 5
+
+    cpu.rom[0] = encode_instruction_r(OP_CMP, rd = 1, rs = 2)
+
+    cpu.step()
+
+    assert cpu.pc == 1
+    assert cpu.get_flag(PSR_Z) == 1
+
+    cpu.regs[2] = 4
+
+    cpu.rom[1] = encode_instruction_r(OP_CMP, rd = 1, rs = 2)
+
+    cpu.step()
+
+    assert cpu.pc == 2
+    assert cpu.get_flag(PSR_Z) == 0
+
+
+def test_nop_step():
+    cpu = WOPR_8()
+
+    cpu.rom[0] = encode_instruction_r(OP_NOP, rd = 0, rs = 0)
+
+    cpu.step()
+
+    assert cpu.pc == 1
+
+
+def test_halt_step():
+    cpu = WOPR_8()
+
+    cpu.rom[0] = encode_instruction_r(OP_HALT, rd = 0, rs = 0)
+
+    cpu.step()
+
+    assert cpu.pc == 1
+    assert cpu.halted == True
+    assert cpu.get_flag(PSR_HALTED) == 1
