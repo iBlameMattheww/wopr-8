@@ -278,6 +278,3 @@ def test_and_post_shift():
     assert cpu.regs[1] == 0
     assert cpu.pc == 2
     assert cpu.get_flag(PSR_Z) == 1
-
-
-    00000001
