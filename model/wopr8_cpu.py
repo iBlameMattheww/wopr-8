@@ -130,8 +130,7 @@ class WOPR_8:
 
         else:
             self.set_flag(PSR_ILLEGAL_INSTRUCTION, True)
-            self.halted = True
-            self.set_flag(PSR_HALTED, True)
+            self.execute_halt()
             return None
 
     
@@ -188,10 +187,10 @@ class WOPR_8:
         opcode = decoded["opcode"]
 
         if opcode == OP_PUSH:
-            return False
+            return self.execute_push(decoded)
         
         elif opcode == OP_POP:
-            return False
+            return self.execute_pop(decoded)
 
         elif opcode == OP_CALL:
             return True
@@ -271,12 +270,40 @@ class WOPR_8:
             return False
 
         elif opcode == OP_NOP:
-            self.execute_nop(decoded)
+            self.execute_nop()
             return False
 
         elif opcode == OP_HALT:
-            self.execute_halt(decoded)
-            return False
+            self.execute_halt()
+            return True
+
+
+    def execute_push(self, decoded):
+        rs = decoded["rs"]
+
+        if self.sp < STACK_MIN:
+            self.set_flag(PSR_STACK_OVERFLOW, True)
+            self.halted = True
+            self.set_flag(PSR_HALTED, True)
+            return True # for the PC to not increment
+
+        self.ram[self.sp] = self.regs[rs]
+        self.sp -= 1
+        return False # for the PC to increment
+
+
+    def execute_pop(self, decoded):
+        rd = decoded["rd"]
+
+        if self.sp >= STACK_TOP:
+            self.set_flag(PSR_STACK_UNDERFLOW, True)
+            self.halted = True
+            self.set_flag(PSR_HALTED, True)
+            return True # for the PC to not increment
+
+        self.sp += 1
+        self.regs[rd] = self.ram[self.sp]
+        return False # for the PC to increment
 
 
     def apply_shift(self, value, shamt, direction):
@@ -289,12 +316,12 @@ class WOPR_8:
             return (value << shamt) & REG_MASK 
 
 
-    def execute_halt(self, decoded):
+    def execute_halt(self):
         self.halted = True
         self.set_flag(PSR_HALTED, True)
 
 
-    def execute_nop(self, decoded):
+    def execute_nop(self):
         pass
 
 
@@ -313,18 +340,22 @@ class WOPR_8:
         shamt = decoded["shamt"]
         dir = decoded["dir"]
 
-        if dir:
-            result = (self.regs[rd] >> self.regs[rs]) & REG_MASK
-            self.set_flag(PSR_C, (self.regs[rd] >> (self.regs[rs] - 1)) & 1)
+        if self.regs[rs] > 0:
+            if dir:
+                result = (self.regs[rd] >> self.regs[rs]) & REG_MASK
+                self.set_flag(PSR_C, (self.regs[rd] >> (self.regs[rs] - 1)) & 1)
+            else:
+                result = (self.regs[rd] << self.regs[rs]) & REG_MASK
+                self.set_flag(PSR_C, (self.regs[rd] >> (8 - self.regs[rs])) & 1)
+
+            if shamt:
+                result = self.apply_shift(result, shamt, dir)
+
+            if result == 0:
+                self.set_flag(PSR_Z, True)
+
         else:
-            result = (self.regs[rd] << self.regs[rs]) & REG_MASK
-            self.set_flag(PSR_C, (self.regs[rd] >> (8 - self.regs[rs])) & 1)
-
-        if shamt:
-            result = self.apply_shift(result, shamt, dir)
-
-        if result == 0:
-            self.set_flag(PSR_Z, True)
+            result = self.regs[rd]
 
         self.regs[rd] = result
 

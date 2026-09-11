@@ -31,7 +31,7 @@ def test_add_raises_zero():
     cpu = WOPR_8()
 
     cpu.regs[1] = 5
-    cpu.regs[2] = -5
+    cpu.regs[2] = 251
 
     cpu.rom[0] = encode_instruction_r(OP_ADD, rd = 1, rs = 2)
 
@@ -40,7 +40,7 @@ def test_add_raises_zero():
     assert cpu.regs[1] == 0
     assert cpu.pc == 1
     assert cpu.get_flag(PSR_Z) == 1
-    assert cpu.get_flag(PSR_C) == 0
+    assert cpu.get_flag(PSR_C) == 1
 
 
 def test_add_raises_carry():
@@ -455,6 +455,22 @@ def test_shift_step():
     assert cpu.get_flag(PSR_C) == 0
 
 
+def test_shift_negative():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 1
+    cpu.regs[2] = -2
+
+    cpu.rom[0] = encode_instruction_r(OP_SHIFT, rd = 1, rs = 2, shamt = 0, dir = 1)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 1
+    assert cpu.pc == 1
+    assert cpu.get_flag(PSR_Z) == 0
+    assert cpu.get_flag(PSR_C) == 0
+
+
 def test_shift_raises_zero():
     cpu = WOPR_8()
 
@@ -552,6 +568,81 @@ def test_halt_step():
 
     cpu.step()
 
-    assert cpu.pc == 1
+    assert cpu.pc == 0
     assert cpu.halted == True
     assert cpu.get_flag(PSR_HALTED) == 1
+
+
+def test_push_step():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 42
+
+    cpu.rom[0] = encode_instruction_r(OP_PUSH, rd = 0, rs = 1)
+
+    cpu.step()
+
+    assert cpu.sp == 222
+    assert cpu.ram[STACK_TOP] == 42
+    assert cpu.pc == 1
+
+
+def test_push_raises_stack_overflow():
+    cpu = WOPR_8()
+
+    cpu.sp = STACK_MIN
+    cpu.regs[1] = 42
+
+    cpu.rom[0] = encode_instruction_r(OP_PUSH, rd = 0, rs = 1)
+
+    cpu.step()
+
+    assert cpu.ram[STACK_MIN] == 42
+    assert cpu.sp == STACK_MIN - 1
+    assert cpu.get_flag(PSR_STACK_OVERFLOW) == 0
+    assert cpu.get_flag(PSR_HALTED) == 0
+    assert cpu.halted == False
+    assert cpu.pc == 1
+
+    cpu.rom[1] = encode_instruction_r(OP_PUSH, rd = 0, rs = 1)
+
+    cpu.step()
+
+    assert cpu.ram[STACK_MIN] == 42
+    assert cpu.sp == STACK_MIN - 1
+    assert cpu.get_flag(PSR_STACK_OVERFLOW) == 1
+    assert cpu.get_flag(PSR_HALTED) == 1
+    assert cpu.halted == True
+    assert cpu.pc == 1
+
+def test_pop_step():
+    cpu = WOPR_8()
+
+    cpu.sp = STACK_TOP - 1
+    cpu.ram[STACK_TOP] = 42
+
+    cpu.rom[0] = encode_instruction_r(OP_POP, rd = 1, rs = 0)
+
+    cpu.step()
+
+    assert cpu.sp == STACK_TOP
+    assert cpu.regs[1] == 42
+    assert cpu.pc == 1
+
+
+def test_pop_raises_stack_underflow():
+    cpu = WOPR_8()
+
+    cpu.sp = STACK_TOP
+    cpu.ram[STACK_TOP] = 42
+
+    cpu.rom[0] = encode_instruction_r(OP_POP, rd = 1, rs = 0)
+
+    cpu.step()
+
+    assert cpu.sp == STACK_TOP
+    assert cpu.regs[1] == 0
+    assert cpu.get_flag(PSR_STACK_UNDERFLOW) == 1
+    assert cpu.get_flag(PSR_HALTED) == 1
+    assert cpu.halted == True
+    assert cpu.pc == 0
