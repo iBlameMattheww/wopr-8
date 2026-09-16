@@ -725,7 +725,7 @@ def test_sti_step():
     assert cpu.pc == 1
 
 
-def test_addi_step():
+def test_andi_step():
     cpu = WOPR_8()
 
     cpu.regs[1] = 5
@@ -738,7 +738,7 @@ def test_addi_step():
     assert cpu.pc == 1
 
 
-def test_addi_raises_zero():
+def test_andi_raises_zero():
     cpu = WOPR_8()
 
     cpu.regs[1] = 5
@@ -804,3 +804,28 @@ def test_xori_raises_zero():
     assert cpu.regs[1] == 0
     assert cpu.pc == 1
     assert cpu.get_flag(PSR_Z) == 1
+
+
+def test_data_movement_preserves_flags():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 5
+
+    cpu.rom[0] = encode_instruction_i(OP_ADDI, rd = 1, immediate = 251)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 0
+    assert cpu.pc == 1
+    assert cpu.get_flag(PSR_Z) == 1
+    assert cpu.get_flag(PSR_C) == 1
+
+    cpu.rom[1] = encode_instruction_i(OP_LDI, rd = 1, immediate = 4)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 4
+    assert cpu.pc == 2
+    assert cpu.get_flag(PSR_Z) == 1
+    assert cpu.get_flag(PSR_C) == 1
+
