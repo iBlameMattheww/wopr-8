@@ -193,9 +193,11 @@ class WOPR_8:
             return self.execute_pop(decoded)
 
         elif opcode == OP_CALL:
+            self.execute_call(decoded)
             return True
 
         elif opcode == OP_RET:
+            self.execute_return(decoded)
             return True
 
         elif opcode == OP_ADD:
@@ -282,6 +284,44 @@ class WOPR_8:
         elif opcode == OP_HALT:
             self.execute_halt()
             return True
+
+
+    def execute_return(self, decoded):
+        if self.sp > STACK_TOP - 2:
+            self.set_flag(PSR_STACK_UNDERFLOW, True)
+            self.halted = True
+            self.set_flag(PSR_HALTED, True)
+            return
+        
+        self.sp += 1 
+        hi = self.ram[self.sp]
+        self.sp += 1 
+        lo = self.ram[self.sp]
+
+        address = hi << 8
+        address |= lo 
+        address &= PC_MASK
+
+        self.pc = address
+
+    def execute_call(self, decoded):
+        address = decoded["address"]
+
+        ret = (self.pc + 1) & PC_MASK
+        lo = ret & 0xFF 
+        hi = (ret >> 8) & 0x07 
+        if self.sp < STACK_MIN + 1: # call uses 11 bit return address so we need 2 stack bytes 
+            self.set_flag(PSR_STACK_OVERFLOW, True)
+            self.halted = True
+            self.set_flag(PSR_HALTED, True)
+            return
+
+        self.ram[self.sp] = lo
+        self.sp -= 1
+        self.ram[self.sp] = hi
+        self.sp -= 1
+
+        self.pc = address 
 
 
     def execute_push(self, decoded):

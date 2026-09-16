@@ -19,6 +19,13 @@ def encode_instruction_i(opcode, rd, immediate):
     return instruction
 
 
+def encode_instruction_j(opcode, address):
+    instruction = (opcode << 11) & 0xFFFF 
+    instruction |= address
+
+    return instruction
+
+
 def test_add_step():
     cpu = WOPR_8()
 
@@ -829,3 +836,28 @@ def test_data_movement_preserves_flags():
     assert cpu.get_flag(PSR_Z) == 1
     assert cpu.get_flag(PSR_C) == 1
 
+
+
+def test_call_step():
+    cpu = WOPR_8()
+
+    cpu.rom[0] = encode_instruction_j(OP_CALL, address = 54)
+
+    cpu.step()
+
+    assert cpu.pc == 54
+
+
+def test_call_raises_stack_overflow():
+    cpu = WOPR_8()
+    
+    cpu.sp = STACK_MIN
+
+    cpu.rom[0] = encode_instruction_j(OP_CALL, address = 54)
+
+    cpu.step()
+
+    assert cpu.pc == 0
+    assert cpu.halted == True
+    assert cpu.get_flag(PSR_HALTED) == 1
+    assert cpu.get_flag(PSR_STACK_OVERFLOW) == 1
