@@ -723,3 +723,84 @@ def test_sti_step():
 
     assert cpu.ram[7] == 27
     assert cpu.pc == 1
+
+
+def test_addi_step():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 5
+
+    cpu.rom[0] = encode_instruction_i(OP_ANDI, rd = 1, immediate = 4)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 4
+    assert cpu.pc == 1
+
+
+def test_addi_raises_zero():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 5
+
+    cpu.rom[0] = encode_instruction_i(OP_ANDI, rd = 1, immediate = 0)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 0
+    assert cpu.pc == 1
+    assert cpu.get_flag(PSR_Z) == 1
+
+
+def test_ori_step():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 5
+
+    cpu.rom[0] = encode_instruction_i(OP_ORI, rd = 1, immediate = 4)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 5
+    assert cpu.pc == 1
+
+
+def test_ori_rasies_zero():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 0
+
+    cpu.rom[0] = encode_instruction_i(OP_ORI, rd = 1, immediate = 0)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 0
+    assert cpu.pc == 1
+    assert cpu.get_flag(PSR_Z) == 1
+
+
+def test_xori_step():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 1
+
+    cpu.rom[0] = encode_instruction_i(OP_XORI, rd = 1, immediate = 3)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 2
+    assert cpu.pc == 1
+
+
+def test_xori_raises_zero():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 1
+
+    cpu.rom[0] = encode_instruction_i(OP_XORI, rd = 1, immediate = 1)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 0
+    assert cpu.pc == 1
+    assert cpu.get_flag(PSR_Z) == 1

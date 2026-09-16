@@ -235,6 +235,7 @@ class WOPR_8:
             return False
 
         elif opcode == OP_ANDI:
+            self.execute_andi(decoded)
             return False
 
         elif opcode == OP_OR:
@@ -242,6 +243,7 @@ class WOPR_8:
             return False
 
         elif opcode == OP_ORI:
+            self.execute_ori(decoded)
             return False
 
         elif opcode == OP_XOR:
@@ -249,6 +251,7 @@ class WOPR_8:
             return False
 
         elif opcode == OP_XORI:
+            self.execute_xori(decoded)
             return False
 
         elif opcode == OP_NOT:
@@ -383,6 +386,16 @@ class WOPR_8:
         self.regs[rd] = result
 
 
+    def execute_xori(self, decoded):
+        rd = decoded["rd"]
+        imm8 = decoded["immediate"]
+
+        result = self.regs[rd] ^ imm8
+
+        self.set_flag(PSR_Z, result == 0)
+        self.regs[rd] = result
+
+
     def execute_xor(self, decoded):
         rd = decoded["rd"]
         rs = decoded["rs"]
@@ -397,6 +410,16 @@ class WOPR_8:
         self.regs[rd] = result
 
 
+    def execute_ori(self, decoded):
+        rd = decoded["rd"]
+        imm8 = decoded["immediate"]
+
+        result = self.regs[rd] | imm8
+
+        self.set_flag(PSR_Z, result == 0)
+        self.regs[rd] = result
+
+
     def execute_or(self, decoded):
         rd = decoded["rd"]
         rs = decoded["rs"]
@@ -406,6 +429,16 @@ class WOPR_8:
         result = self.regs[rd] | self.regs[rs]
         if shamt:
             result = self.apply_shift(result, shamt, dir)
+
+        self.set_flag(PSR_Z, result == 0)
+        self.regs[rd] = result
+
+
+    def execute_andi(self, decoded):
+        rd = decoded["rd"]
+        imm8 = decoded["immediate"]
+
+        result = self.regs[rd] & imm8
 
         self.set_flag(PSR_Z, result == 0)
         self.regs[rd] = result
