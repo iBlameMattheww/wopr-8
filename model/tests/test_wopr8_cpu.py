@@ -11,6 +11,14 @@ def encode_instruction_r(opcode, rd, rs, shamt = 0, dir = 0):
     return instruction
 
 
+def encode_instruction_i(opcode, rd, immediate):
+    instruction = (opcode << 11) & 0xFFFF 
+    instruction |= rd << 8 
+    instruction |= immediate
+
+    return instruction
+
+
 def test_add_step():
     cpu = WOPR_8()
 
@@ -646,3 +654,72 @@ def test_pop_raises_stack_underflow():
     assert cpu.get_flag(PSR_HALTED) == 1
     assert cpu.halted == True
     assert cpu.pc == 0
+
+
+def test_ldi_step():
+    cpu = WOPR_8()
+
+    cpu.rom[0] = encode_instruction_i(OP_LDI, rd = 1, immediate = 5)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 5
+    assert cpu.pc == 1
+
+
+def test_addi_step():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 5
+
+    cpu.rom[0] = encode_instruction_i(OP_ADDI, rd = 1, immediate = 4)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 9
+    assert cpu.pc == 1
+    assert cpu.get_flag(PSR_C) == 0
+    assert cpu.get_flag(PSR_Z) == 0
+
+
+def test_addi_raises_carry():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 100
+
+    cpu.rom[0] = encode_instruction_i(OP_ADDI, rd = 1, immediate = 200)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 44
+    assert cpu.pc == 1
+    assert cpu.get_flag(PSR_Z) == 0
+    assert cpu.get_flag(PSR_C) == 1
+
+
+def test_addi_raises_zero():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 5
+
+    cpu.rom[0] = encode_instruction_i(OP_ADDI, rd = 1, immediate = 251)
+
+    cpu.step()
+
+    assert cpu.regs[1] == 0
+    assert cpu.pc == 1
+    assert cpu.get_flag(PSR_Z) == 1
+    assert cpu.get_flag(PSR_C) == 1
+
+
+def test_sti_step():
+    cpu = WOPR_8()
+
+    cpu.regs[1] = 7
+
+    cpu.rom[0] = encode_instruction_i(OP_STI, rd = 1, immediate = 27)
+
+    cpu.step()
+
+    assert cpu.ram[7] == 27
+    assert cpu.pc == 1

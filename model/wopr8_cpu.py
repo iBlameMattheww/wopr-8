@@ -203,6 +203,7 @@ class WOPR_8:
             return False
 
         elif opcode == OP_ADDI:
+            self.execute_addi(decoded)
             return False
 
         elif opcode == OP_SUB:
@@ -214,6 +215,7 @@ class WOPR_8:
             return False
 
         elif opcode == OP_LDI:
+            self.execute_ldi(decoded)
             return False
 
         elif opcode == OP_STORE:
@@ -221,6 +223,7 @@ class WOPR_8:
             return False
 
         elif opcode == OP_STI:
+            self.execute_sti(decoded)
             return False
 
         elif opcode == OP_MOVE:
@@ -434,6 +437,15 @@ class WOPR_8:
             self.regs[rd] = self.regs[rs]
 
 
+    def execute_sti(self, decoded):
+        rd = decoded["rd"]
+        imm8 = decoded["immediate"]
+
+        address = self.regs[rd]
+
+        self.ram[address] = imm8
+
+
     def execute_store(self, decoded):
         rd = decoded["rd"]
         rs = decoded["rs"]
@@ -446,6 +458,13 @@ class WOPR_8:
             address = self.regs[rd]
 
         self.ram[address] = self.regs[rs]
+    
+
+    def execute_ldi(self, decoded):
+        rd = decoded["rd"]
+        imm8 = decoded["immediate"]
+
+        self.regs[rd] = imm8
 
 
     def execute_load(self, decoded):
@@ -476,6 +495,18 @@ class WOPR_8:
         if shamt:
             result = self.apply_shift(result, shamt, dir)
 
+        self.set_flag(PSR_Z, result == 0)
+        self.regs[rd] = result
+
+
+    def execute_addi(self, decoded):
+        rd = decoded["rd"]
+        imm8 = decoded["immediate"]
+
+        full_sum = self.regs[rd] + imm8
+        result = full_sum & REG_MASK
+
+        self.set_flag(PSR_C, full_sum > 0xFF)
         self.set_flag(PSR_Z, result == 0)
         self.regs[rd] = result
 
