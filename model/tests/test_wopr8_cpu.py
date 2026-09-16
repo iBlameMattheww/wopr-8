@@ -459,15 +459,15 @@ def test_shift_negative():
     cpu = WOPR_8()
 
     cpu.regs[1] = 1
-    cpu.regs[2] = -2
+    cpu.regs[2] = 254
 
     cpu.rom[0] = encode_instruction_r(OP_SHIFT, rd = 1, rs = 2, shamt = 0, dir = 1)
 
     cpu.step()
 
-    assert cpu.regs[1] == 1
+    assert cpu.regs[1] == 0
     assert cpu.pc == 1
-    assert cpu.get_flag(PSR_Z) == 0
+    assert cpu.get_flag(PSR_Z) == 1
     assert cpu.get_flag(PSR_C) == 0
 
 

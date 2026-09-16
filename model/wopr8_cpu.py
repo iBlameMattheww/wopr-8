@@ -340,7 +340,14 @@ class WOPR_8:
         shamt = decoded["shamt"]
         dir = decoded["dir"]
 
-        if self.regs[rs] > 0:
+        if self.regs[rs] == 0:
+            result = self.regs[rd]
+
+        elif self.regs[rs] > 8:
+            result = 0
+            self.set_flag(PSR_C, False)
+
+        else:
             if dir:
                 result = (self.regs[rd] >> self.regs[rs]) & REG_MASK
                 self.set_flag(PSR_C, (self.regs[rd] >> (self.regs[rs] - 1)) & 1)
@@ -351,12 +358,7 @@ class WOPR_8:
             if shamt:
                 result = self.apply_shift(result, shamt, dir)
 
-            if result == 0:
-                self.set_flag(PSR_Z, True)
-
-        else:
-            result = self.regs[rd]
-
+        self.set_flag(PSR_Z, result == 0)
         self.regs[rd] = result
 
 
@@ -370,9 +372,7 @@ class WOPR_8:
         if shamt:
             result = self.apply_shift(result, shamt, dir)
 
-        if result == 0:
-            self.set_flag(PSR_Z, True)
-
+        self.set_flag(PSR_Z, result == 0)
         self.regs[rd] = result
 
 
@@ -386,9 +386,7 @@ class WOPR_8:
         if shamt:
             result = self.apply_shift(result, shamt, dir)
 
-        if result == 0:
-            self.set_flag(PSR_Z, True)
-
+        self.set_flag(PSR_Z, result == 0)
         self.regs[rd] = result
 
 
@@ -402,9 +400,7 @@ class WOPR_8:
         if shamt:
             result = self.apply_shift(result, shamt, dir)
 
-        if result == 0:
-            self.set_flag(PSR_Z, True)
-
+        self.set_flag(PSR_Z, result == 0)
         self.regs[rd] = result
 
 
@@ -418,9 +414,7 @@ class WOPR_8:
         if shamt:
             result = self.apply_shift(result, shamt, dir)
 
-        if result == 0:
-            self.set_flag(PSR_Z, True)
-
+        self.set_flag(PSR_Z, result == 0)
         self.regs[rd] = result
 
 
