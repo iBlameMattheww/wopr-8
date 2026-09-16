@@ -306,13 +306,17 @@ class WOPR_8:
         return False # for the PC to increment
 
 
-    def apply_shift(self, value, shamt, direction):
+    def apply_shift(self, value, shamt, direction, update_c = True):
         if direction: # right
-            self.set_flag(PSR_C, (value >> (shamt - 1)) & 1) # get last shifted out bit
+            if update_c:
+                self.set_flag(PSR_C, (value >> (shamt - 1)) & 1) # get last shifted out bit
+            
             return (value >> shamt) & REG_MASK
 
         else: # left
-            self.set_flag(PSR_C, (value >> (8 - shamt)) & 1) # get last shifted out bit
+            if update_c:
+                self.set_flag(PSR_C, (value >> (8 - shamt)) & 1) # get last shifted out bit
+            
             return (value << shamt) & REG_MASK 
 
 
@@ -425,7 +429,7 @@ class WOPR_8:
         dir = decoded["dir"]
 
         if shamt:
-            self.regs[rd] = self.apply_shift(self.regs[rs], shamt, dir)
+            self.regs[rd] = self.apply_shift(self.regs[rs], shamt, dir, update_c = False)
         else:
             self.regs[rd] = self.regs[rs]
 
@@ -437,7 +441,7 @@ class WOPR_8:
         dir = decoded["dir"]
 
         if shamt:
-            address = self.apply_shift(self.regs[rd], shamt, dir)
+            address = self.apply_shift(self.regs[rd], shamt, dir, update_c = False)
         else:
             address = self.regs[rd]
 
@@ -451,7 +455,7 @@ class WOPR_8:
         dir = decoded["dir"]
 
         if shamt:
-            address = self.apply_shift(self.regs[rs], shamt, dir)
+            address = self.apply_shift(self.regs[rs], shamt, dir, update_c = False)
         else:
             address = self.regs[rs]
 
