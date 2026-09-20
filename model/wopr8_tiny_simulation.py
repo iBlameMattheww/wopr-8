@@ -39,7 +39,7 @@ def simple_loop():
     cpu.rom[2] = encode_instruction_i(OP_ADDI, rd = 0, immediate = 1)    # ADDI R0, 1
     cpu.rom[3] = encode_instruction_r(OP_SUB, rd = 1, rs = 0)            # SUB R1, R0
     cpu.rom[4] = encode_instruction_j(OP_JNZ, address = 1)               # JNZ 1
-    cpu.rom[5] = encode_instruction_r(OP_HALT, rd = 0, rs = 0)           # OP_HALT
+    cpu.rom[5] = encode_instruction_r(OP_HALT, rd = 0, rs = 0)           # HALT
 
     while not cpu.halted:
         cpu.step()
@@ -49,7 +49,7 @@ def simple_loop():
     assert cpu.get_flag(PSR_Z) == 1
     assert cpu.halted == True 
 
-    print("WOPR-8 simulation passed!")
+    print("WOPR-8 simple loop simulation passed!")
 
 
 def main():
