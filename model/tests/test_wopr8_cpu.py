@@ -861,3 +861,60 @@ def test_call_raises_stack_overflow():
     assert cpu.halted == True
     assert cpu.get_flag(PSR_HALTED) == 1
     assert cpu.get_flag(PSR_STACK_OVERFLOW) == 1
+
+
+def test_jmp_step():
+    cpu = WOPR_8()
+
+    cpu.rom[0] = encode_instruction_j(OP_JMP, address = 54)
+
+    assert cpu.pc == 0
+
+    cpu.step()
+
+    assert cpu.pc == 54
+
+
+def test_jz_step():
+    cpu = WOPR_8()
+
+    cpu.rom[0] = encode_instruction_j(OP_JZ, address = 54)
+
+    assert cpu.pc == 0
+    assert cpu.get_flag(PSR_Z) == 0
+
+    cpu.set_flag(PSR_Z, True)
+
+    cpu.step()
+
+    assert cpu.pc == 54
+    assert cpu.get_flag(PSR_Z) == 1
+
+    cpu.rom[54] = encode_instruction_j(OP_JZ, address = 45)
+    cpu.set_flag(PSR_Z, False)
+
+    cpu.step()
+
+    assert cpu.pc == 55
+    assert cpu.get_flag(PSR_Z) == 0
+
+
+def test_jnz_step():
+    cpu = WOPR_8()
+
+    cpu.set_flag(PSR_Z, True)
+    cpu.rom[0] = encode_instruction_j(OP_JNZ, address = 54)
+
+    assert cpu.pc == 0
+    assert cpu.get_flag(PSR_Z) == 1
+
+    cpu.step()
+
+    assert cpu.pc == 1
+    
+    cpu.set_flag(PSR_Z, False)
+    cpu.rom[1] = encode_instruction_j(OP_JNZ, address = 45)
+
+    cpu.step()
+
+    assert cpu.pc == 45

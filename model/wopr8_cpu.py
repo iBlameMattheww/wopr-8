@@ -265,12 +265,15 @@ class WOPR_8:
             return False
 
         elif opcode == OP_JMP:
+            self.execute_jmp(decoded)
             return True
 
         elif opcode == OP_JZ:
+            self.execute_jz(decoded)
             return True
 
         elif opcode == OP_JNZ:
+            self.execute_jnz(decoded)
             return True
 
         elif opcode == OP_CMP:
@@ -284,6 +287,32 @@ class WOPR_8:
         elif opcode == OP_HALT:
             self.execute_halt()
             return True
+
+
+    def execute_jnz(self, decoded):
+        address = decoded["address"]
+
+        if self.get_flag(PSR_Z):
+            self.pc += 1
+
+        else:
+            self.pc = address
+
+
+    def execute_jz(self, decoded):
+        address = decoded["address"]
+
+        if self.get_flag(PSR_Z):
+            self.pc = address
+
+        else:
+            self.pc += 1
+
+
+    def execute_jmp(self, decoded):
+        address = decoded["address"]
+
+        self.pc = address
 
 
     def execute_return(self, decoded):
