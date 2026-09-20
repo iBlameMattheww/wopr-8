@@ -293,7 +293,7 @@ class WOPR_8:
         address = decoded["address"]
 
         if self.get_flag(PSR_Z):
-            self.pc += 1
+            self.pc = (self.pc + 1) & PC_MASK
 
         else:
             self.pc = address
@@ -306,7 +306,7 @@ class WOPR_8:
             self.pc = address
 
         else:
-            self.pc += 1
+            self.pc = (self.pc + 1) & PC_MASK
 
 
     def execute_jmp(self, decoded):
