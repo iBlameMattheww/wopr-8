@@ -1,4 +1,4 @@
-wopr-8 is a small, multi-cycle, non-pipelined, Harvard architecture CPU intended FPGA implementation and architectural/verification study. The core uses an 8-bit datapath with fixed-width 16-bit
+wopr-8 is a small, multi-cycle, non-pipelined, Harvard architecture CPU intended for FPGA implementation and architectural/verification study. The core uses an 8-bit datapath with fixed-width 16-bit
 instructions. 
 
 Done: 
