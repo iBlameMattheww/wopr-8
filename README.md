@@ -7,12 +7,12 @@ Done:
 - Froze a small ISA and executable specification
 - Ran fetch/decode/execute in simulation
 - Register file
+- ALU
 
 To do:
 - PC
 - Decoder
 - Control
-- ALU
 - Memories
 - Branches
 - Hand coded programs
