@@ -19,7 +19,7 @@ module register_file (
   assign rs_data = regs[rs_address];
 
 
-  always_ff @(posedge clk) begin : blockName
+  always_ff @(posedge clk) begin : RegisterFile
     if (reset) begin
       for (int i = 0; i < 8; i++) begin
         regs[i] <= 8'd0;
