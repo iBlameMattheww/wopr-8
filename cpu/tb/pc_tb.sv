@@ -43,7 +43,10 @@ module pc_tb;
     begin
       pc_op  = operation;
       target = target_pc;
-      #10;
+      @(posedge clk);
+
+      #1;
+      pc_op = PC_HOLD;
     end
   endtask
 
@@ -74,6 +77,22 @@ module pc_tb;
     check_pc_result(11'd1);
 
     #100;
+    write_to_pc(PC_LOAD, 11'd255);
+    check_pc_result(11'd255);
+
+    #100;
+    write_to_pc(PC_INCREMENT, 11'd99);
+    check_pc_result(11'd256);
+
+    #100;
+    write_to_pc(PC_HOLD, 11'd0);
+    check_pc_result(11'd256);
+
+    #100 write_to_pc(PC_LOAD, 11'd2047);
+    check_pc_result(11'd2047);
+
+    #100 write_to_pc(PC_INCREMENT, 11'd300);
+    check_pc_result(11'd0);
 
     #20000;
     $finish;
