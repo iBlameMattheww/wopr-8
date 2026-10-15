@@ -8,9 +8,9 @@ Done:
 - Ran fetch/decode/execute in simulation
 - Register file
 - ALU
+- PC
 
 To do:
-- PC
 - Decoder
 - Control
 - Memories

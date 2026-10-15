@@ -33,7 +33,8 @@ module pc_tb;
   task reset_pc();
     begin
       reset = 1;
-      #20;
+      @(posedge clk);
+      #1;
       reset = 0;
     end
   endtask
