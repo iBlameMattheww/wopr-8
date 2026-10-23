@@ -79,6 +79,20 @@ module sp_tb;
     write_to_sp(SP_INCREMENT);
     check_sp_result(8'hDF);
 
+    #100;
+    write_to_sp(SP_DECREMENT);
+    write_to_sp(SP_DECREMENT);
+    write_to_sp(SP_DECREMENT);
+    check_sp_result(8'hDC);
+
+    #100;
+    @(negedge clk);
+    reset_sp();
+    write_to_sp(SP_HOLD);
+    @(posedge clk);
+    #1;
+    check_sp_result(8'hDF);
+
     #20000;
     $finish;
   end
