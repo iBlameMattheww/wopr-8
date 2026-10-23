@@ -9,6 +9,7 @@ Done:
 - Register file
 - ALU
 - PC
+- SP
 
 To do:
 - Decoder
